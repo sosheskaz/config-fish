@@ -1,5 +1,5 @@
 function fish_greeting
-  set -f fortune_cmd "$(command -v fortune)"
+  set -f fortune_cmd "$(command -v fortune || command -v fortune_gem)"
   if test -z "$fortune_cmd"; return; end
 
   begin
