@@ -1,11 +1,20 @@
 function _cachy_ctime
-  set -f stat_cmd stat -c %Y
-  if test $__fish_uname = "Darwin"
+  if set -q $__fish_uname; set -f uname $__fish_uname
+  else; set -f uname (uname); end
+  switch $uname
+    case '*BSD' 'Darwin'
+      set -f stat_cmd stat -f %m
+    case 'Linux'
+      set -f stat_cmd stat -c %Y
+    case '*'
+      echo "Unsupported OS: $uname" >&2
+      return 1
+  end
+  if test $uname = "Darwin"
     set -f stat_cmd stat -f %m
   end
 
   set -f rc 0
-
   for f in $argv
     if test -f "$f"
       command $stat_cmd "$f"
