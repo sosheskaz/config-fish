@@ -62,7 +62,6 @@ function _cachy
     $cmd | tee "$cache_file"
     return $status
   else
-    read x < "$cache_file"
-    echo $x
+    cat "$cache_file"
   end
 end
