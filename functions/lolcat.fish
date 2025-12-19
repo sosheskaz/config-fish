@@ -7,8 +7,18 @@ function lolcat
   end
   set -f lolcat_cmd $lolcat_cmd[1]
 
-  if not contains -- -t $argv && test "$COLORTERM" = "truecolor" -o "$COLORTERM" = "24bit"
-    set -fa lolcat_cmd -t
+  if set -q $__fish_uname; set -f uname $__fish_uname
+  else; set -f uname (uname); end
+
+  switch $uname
+    case 'FreeBSD'
+      set -f truecolor_flag -b
+    case '*'
+      set -f truecolor_flag -t
+  end
+
+  if not contains -- $truecolor_flag $argv && test "$COLORTERM" = "truecolor" -o "$COLORTERM" = "24bit"
+    set -a lolcat_cmd $truecolor_flag
   end
 
   command $lolcat_cmd $argv
