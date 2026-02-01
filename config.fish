@@ -1,8 +1,5 @@
 if status is-interactive
     # Commands to run in interactive sessions can go here
+    # conf.d/ files auto-load at startup
+    # functions/ lazy-load on first use
 end
-
-# Added by LM Studio CLI (lms)
-set -gx PATH $PATH /Users/ericmiller/.lmstudio/bin
-# End of LM Studio CLI section
-
