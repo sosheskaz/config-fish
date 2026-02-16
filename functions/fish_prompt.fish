@@ -13,7 +13,19 @@ function fish_prompt --description 'Informative prompt'
                 set -l statusb_color (set_color --bold $fish_color_status)
                 set -l pipestatus_string (__fish_print_pipestatus "[" "]" "|" "$status_color" "$statusb_color" $last_pipestatus)
 
-                set -l left_top (printf '[%s] %s%s@%s %s%s %s%s' (date "+%H:%M:%S") (set_color brblue) \
+                set -l duration_str ''
+                if test "$CMD_DURATION" -gt 3000 2>/dev/null
+                        set -l secs (math --scale=1 "$CMD_DURATION / 1000")
+                        if test "$secs" -ge 60 2>/dev/null
+                                set -l mins (math --scale=0 "floor($secs / 60)")
+                                set secs (math --scale=1 "$secs - $mins * 60")
+                                set duration_str (printf ' %s+%dm%ss%s' (set_color yellow) $mins $secs (set_color normal))
+                        else
+                                set duration_str (printf ' %s+%ss%s' (set_color yellow) $secs (set_color normal))
+                        end
+                end
+
+                set -l left_top (printf '[%s%s] %s%s@%s %s%s %s%s' (date "+%H:%M:%S") "$duration_str" (set_color brblue) \
                         $USER (prompt_hostname) (set_color $fish_color_cwd) $PWD $pipestatus_string  \
                         (set_color normal))
                 set -l right_top (fish_git_prompt '(%s)' 2>/dev/null)
