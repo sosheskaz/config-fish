@@ -29,7 +29,13 @@ function fish_prompt --description 'Informative prompt'
                         $USER (prompt_hostname) (set_color $fish_color_cwd) $PWD $pipestatus_string  \
                         (set_color normal))
                 set -l right_top (fish_git_prompt '(%s)' 2>/dev/null)
-                set -l left_bottom "$(printf '%s> ' (set_color normal))"
+                set -l left_bottom
+                if set -q VIRTUAL_ENV
+                        set -l venv_name (basename $VIRTUAL_ENV)
+                        set left_bottom (printf '%s🐍(%s)%s > ' (set_color yellow) $venv_name (set_color normal))
+                else
+                        set left_bottom (printf '%s> ' (set_color normal))
+                end
 
                 set -l padding (math $COLUMNS - (string length -v "$left_top"))
                 if test $padding -lt 1
