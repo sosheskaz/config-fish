@@ -30,11 +30,21 @@ function fish_prompt --description 'Informative prompt'
                         (set_color normal))
                 set -l right_top (fish_git_prompt '(%s)' 2>/dev/null)
                 set -l left_bottom
+                set -l bw_status ''
+                set -l bw_cmd bw
+                if set -q BW_CMD
+                        set bw_cmd $BW_CMD
+                end
+                if command -q $bw_cmd
+                        if set -q BW_SESSION; or set -q __bw_session
+                                set bw_status '🔓 '
+                        end
+                end
                 if set -q VIRTUAL_ENV
                         set -l venv_name (basename $VIRTUAL_ENV)
-                        set left_bottom (printf '%s🐍(%s)%s > ' (set_color yellow) $venv_name (set_color normal))
+                        set left_bottom (printf '%s%s🐍(%s)%s > ' "$bw_status" (set_color yellow) $venv_name (set_color normal))
                 else
-                        set left_bottom (printf '%s> ' (set_color normal))
+                        set left_bottom (printf '%s%s> ' "$bw_status" (set_color normal))
                 end
 
                 set -l padding (math $COLUMNS - (string length -v "$left_top"))
