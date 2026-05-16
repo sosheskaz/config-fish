@@ -22,6 +22,10 @@ pre-commit:
       glob: ".github/workflows/*.{yaml,yml}"
       run: mise exec -- actionlint {staged_files}
 
+    renovate:
+      glob: "{renovate.{json,json5},.github/renovate.{json,json5}}"
+      run: mise exec -- renovate-config-validator
+
 commit-msg:
   commands:
     conventional:

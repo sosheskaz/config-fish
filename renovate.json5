@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  // Timing is controlled by the .github/workflows/renovate.yml cron.
+  // Keeping a `schedule` here would make workflow_dispatch runs no-op outside the window.
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchDatasources": ["node-version", "npm"],
+      "groupName": "nodejs"
+    }
+  ]
+}
