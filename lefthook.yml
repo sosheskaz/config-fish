@@ -2,11 +2,12 @@ pre-commit:
   parallel: true
   commands:
     fish-syntax:
-      glob: "*.fish"
+      glob: "**.fish"
       run: |
         for file in {staged_files}; do
           fish -n "$file" || exit 1
         done
+
     trailing-whitespace:
       run: |
         for file in {staged_files}; do
@@ -16,6 +17,10 @@ pre-commit:
             exit 1
           fi
         done
+
+    actionlint:
+      glob: ".github/workflows/*.{yaml,yml}"
+      run: mise exec -- actionlint {staged_files}
 
 commit-msg:
   commands:
