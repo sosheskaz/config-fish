@@ -9,3 +9,7 @@ end
 if command -v kubectl >/dev/null
   abbr -a k kubectl
 end
+
+if command -v zoxide > /dev/null
+  abbr -a z zoxide
+end
