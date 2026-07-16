@@ -2,5 +2,5 @@
 actionlint = "1.7.12"
 lefthook = "2.1.9"
 
-node = "24.17.0"
-"npm:renovate" = "43.229.3"
+node = "24.18.0"
+"npm:renovate" = "43.256.1"
