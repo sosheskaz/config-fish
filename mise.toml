@@ -19,10 +19,6 @@ node = "24.17.0"
 description = "Install git hooks via lefthook"
 run = "lefthook install"
 
-[tasks."lint:workflows"]
-description = "Lint GitHub Actions workflows (actionlint + zizmor)"
-run = ["actionlint", "zizmor .github/workflows"]
-
 [tasks.check]
 description = "Run every pre-commit check against the whole tree"
 run = "lefthook run pre-commit --all-files"
