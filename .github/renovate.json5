@@ -3,9 +3,6 @@
   "extends": [
     "config:recommended",
     ":semanticCommitTypeAll(deps)",
-    // Pins actions by digest and keeps the trailing version comment in semver
-    // form. Supplies pinDigests and a versioning regex tolerant of both `v7`
-    // and `v7.0.1`, so the github-actions rule below must not set `versioning`.
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "semanticCommits": "enabled",
@@ -15,8 +12,6 @@
   "schedule": ["at any time"],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
-  // Pinned to the default: the "majors get a human" rule below only holds if
-  // major upgrades are raised separately from minor ones.
   "separateMajorMinor": true,
   "osvVulnerabilityAlerts": true,
   "ignorePaths": [".worktrees/**"],
