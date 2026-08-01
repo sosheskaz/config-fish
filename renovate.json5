@@ -11,6 +11,9 @@
   "schedule": ["at any time"],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
+  // Pinned to the default: the "majors get a human" rule below only holds if
+  // major upgrades are raised separately from minor ones.
+  "separateMajorMinor": true,
   "osvVulnerabilityAlerts": true,
   "ignorePaths": [".worktrees/**"],
   "packageRules": [
