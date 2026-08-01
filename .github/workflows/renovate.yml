@@ -82,11 +82,10 @@ jobs:
           permission-statuses: write
           permission-vulnerability-alerts: read
 
-      # useBaseBranchConfig resolves the config file *name* from the default
-      # branch, so the dry run cannot work until the config exists there — a
-      # bootstrap PR fails with "Error fetching config file from base branch".
-      # Skip the dry run in that window; the validator step above still gates
-      # config syntax.
+      # RENOVATE_USE_BASE_BRANCH_CONFIG (set below) reuses the config file *name*
+      # detected on the default branch, so a PR that adds or relocates the config
+      # throws there. Skip the dry run in that window; the validator still gates
+      # syntax.
       - name: Check for config on default branch
         id: default-config
         if: github.event_name == 'pull_request'
