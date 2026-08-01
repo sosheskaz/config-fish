@@ -1,2 +1,6 @@
 fish_variables
 **/*.local.*
+
+// Git worktrees contain a .git file with absolute paths from the machine that
+// created them; syncing one to another host produces a broken checkout.
+.worktrees

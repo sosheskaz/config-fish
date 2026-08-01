@@ -1,4 +1,22 @@
+# fish-managed state
 fish_variables
 conf.d/fish_frozen_*.fish
+
+# Syncthing: folder marker, and the conflict copies it writes when two machines
+# edit the same file. Conflict files are artifacts to resolve by hand, never
+# sources to commit.
 .stfolder
+*.sync-conflict-*
+
+# Nested git worktrees
+.worktrees/
+
+# Editor and OS debris
+*.bak
+*~
+*.swp
+*.swo
+.DS_Store
+
+# Local overrides
 **/*.local.*
