@@ -12,12 +12,8 @@ on:
   workflow_dispatch: {}
 
 concurrency:
-  # On main, batch-merged PRs coalesce rather than queueing up one run each: the
-  # in-flight run finishes, and a newly queued run supersedes any still-pending
-  # one, so main verifies its first and final state instead of every commit in
-  # the batch. Renovate merging several bumps in one window is the case this
-  # exists for. Never cancel in flight there — a run to completion is the record
-  # that main is green. PR branches cancel outright; only the tip matters.
+  # Main never cancels in flight; batch-merged runs coalesce to the tip rather
+  # than one run per commit. PR branches cancel — only the tip matters there.
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
