@@ -10,8 +10,7 @@ yamllint = "1.38.0"
 zizmor = "1.27.0"
 "aqua:rhysd/actionlint" = "1.7.12"
 
-# renovate declares engines.node "^24"; a node major bump breaks it, so
-# .github/renovate.json5 holds node to major 24.
+# renovate declares engines.node "^24"; a node major bump breaks it.
 node = "24.17.0"
 "npm:renovate" = "43.229.3"
 

@@ -44,14 +44,6 @@
       "automergeType": "pr"
     },
     {
-      // renovate declares engines.node "^24"; a node major bump breaks the
-      // renovate workflow itself, so it never lands unattended.
-      "matchManagers": ["mise"],
-      "matchDepNames": ["node"],
-      "matchUpdateTypes": ["major"],
-      "enabled": false
-    },
-    {
       // The mise CLI is pinned in the workflows, not in .config/mise.toml, so
       // it arrives via customManagers rather than the mise manager.
       "matchDepNames": ["jdx/mise"],
