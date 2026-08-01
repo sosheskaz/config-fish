@@ -119,7 +119,9 @@ jobs:
           RENOVATE_ONBOARDING: 'false'
           RENOVATE_REQUIRE_CONFIG: ${{ github.event_name == 'pull_request' && 'optional' || 'required' }}
           RENOVATE_DRY_RUN: ${{ github.event_name == 'pull_request' && 'full' || '' }}
-          RENOVATE_BASE_BRANCHES: ${{ github.event_name == 'pull_request' && format('["{0}"]', github.head_ref) || '' }}
+          # toJSON quotes and escapes: bare interpolation emits invalid JSON for
+          # a branch name containing a quote or backslash.
+          RENOVATE_BASE_BRANCHES: ${{ github.event_name == 'pull_request' && format('[{0}]', toJSON(github.head_ref)) || '' }}
           RENOVATE_USE_BASE_BRANCH_CONFIG: ${{ github.event_name == 'pull_request' && 'merge' || '' }}
           LOG_LEVEL: ${{ inputs.log_level || 'info' }}
         run: renovate

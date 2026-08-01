@@ -60,7 +60,9 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="${{ github.event.pull_request.base.sha }}"
             head="${{ github.event.pull_request.head.sha }}"
-            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base" "$head")
+            # base...head, not base head: the two-dot form compares endpoints,
+            # so a file main deleted after the fork reads as added by the PR.
+            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base...$head")
             if [ "${#files[@]}" -eq 0 ]; then
               echo "no changed files; skipping"
               exit 0
