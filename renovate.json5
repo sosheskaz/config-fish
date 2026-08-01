@@ -7,11 +7,10 @@
   "semanticCommits": "enabled",
   "semanticCommitType": "deps",
   // Cadence comes from the .github/workflows/renovate.yml cron. "at any time"
-  // is renovate's no-restriction default, stated explicitly: a real window here
-  // would make workflow_dispatch runs no-op outside it.
+  // is renovate's no-restriction default, stated explicitly.
   "schedule": ["at any time"],
   "prHourlyLimit": 0,
-  "prConcurrentLimit": 10,
+  "prConcurrentLimit": 0,
   "osvVulnerabilityAlerts": true,
   "ignorePaths": [".worktrees/**"],
   "packageRules": [
