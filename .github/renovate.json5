@@ -15,6 +15,16 @@
   "separateMajorMinor": true,
   "osvVulnerabilityAlerts": true,
   "ignorePaths": [".worktrees/**"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Read `# renovate:` annotations above workflow action inputs",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+version: (?<currentValue>\\S+)"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "description": "Let a release settle before proposing it, so yanked or quickly-patched versions never reach a PR",
@@ -57,16 +67,6 @@
       "matchUpdateTypes": ["major"],
       "addLabels": ["MAJOR UPDATE"],
       "automerge": false
-    }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Read `# renovate:` annotations above workflow action inputs",
-      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+version: (?<currentValue>\\S+)"
-      ]
     }
   ]
 }
