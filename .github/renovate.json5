@@ -26,8 +26,6 @@
       "minimumReleaseAge": "2 weeks"
     },
     {
-      // automergeType "pr" is GitHub-native auto-merge: it still waits on
-      // required checks rather than bypassing them.
       "matchManagers": ["github-actions"],
       "semanticCommitType": "ci",
       "semanticCommitScope": "actions",
