@@ -8,8 +8,8 @@ on:
     - cron: '0 */6 * * *'
   pull_request:
     paths:
-      - renovate.json5
-      - mise.toml
+      - .github/renovate.json5
+      - .config/mise.toml
       - .github/workflows/renovate.yml
   workflow_dispatch:
     inputs:
@@ -81,7 +81,7 @@ jobs:
           permission-vulnerability-alerts: read
 
       # useBaseBranchConfig resolves the config file *name* from the default
-      # branch, so the dry run cannot work until renovate.json5 exists there — a
+      # branch, so the dry run cannot work until the config exists there — a
       # bootstrap PR fails with "Error fetching config file from base branch".
       # Skip the dry run in that window; the validator step above still gates
       # config syntax.
@@ -99,11 +99,11 @@ jobs:
           if [ "${HEAD_REPO}" != "${REPO}" ]; then
             echo "present=false" >> "$GITHUB_OUTPUT"
             echo "::notice::pull request is from a fork; skipping dry run (config validation still ran)"
-          elif gh api "repos/${REPO}/contents/renovate.json5" --jq .name > /dev/null 2>&1; then
+          elif gh api "repos/${REPO}/contents/.github/renovate.json5" --jq .name > /dev/null 2>&1; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::renovate.json5 is not on the default branch yet; skipping dry run (config validation still ran)"
+            echo "::notice::.github/renovate.json5 is not on the default branch yet; skipping dry run (config validation still ran)"
           fi
 
       # On pull requests this is a dry run against the PR branch, so config

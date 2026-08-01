@@ -41,7 +41,7 @@ pre-commit:
     # No path argument: an explicit file makes the validator treat it as a
     # *global* config and accept global-only options.
     - name: renovate-config-validator
-      glob: "renovate.{json,json5}"
+      glob: ".github/renovate.{json,json5}"
       run: mise exec -- renovate-config-validator --strict
 
 commit-msg:
