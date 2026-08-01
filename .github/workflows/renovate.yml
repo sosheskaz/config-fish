@@ -1,8 +1,16 @@
 name: Renovate
 
 on:
+  push:
+    branches:
+      - main
   schedule:
-    - cron: '0 8 * * 4'
+    - cron: '0 */6 * * *'
+  pull_request:
+    paths:
+      - renovate.json5
+      - mise.toml
+      - .github/workflows/renovate.yml
   workflow_dispatch:
     inputs:
       log_level:
@@ -15,29 +23,102 @@ on:
           - warning
 
 concurrency:
-  group: renovate
-  cancel-in-progress: false
+  group: renovate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false  # a run killed mid-update leaves partial branches
 
 jobs:
   renovate:
+    name: Renovate
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Read-only, and deliberately enumerated. Renovate's repository init reads
+    # PRs, issues and check statuses even in dry-run mode; declaring any
+    # permissions key makes the token deny-by-default, so a bare `contents:
+    # read` fails init with platform-unknown-error. Real runs authenticate with
+    # the GitHub App token minted below, not this one.
     permissions:
       contents: read
-      packages: read
+      issues: read
+      pull-requests: read
+      checks: read
+      statuses: read
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
+        with:
+          persist-credentials: false
 
-      - name: Setup mise
-        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+      - name: Set up mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d  # v4.2.0
+        with:
+          install_args: node npm:renovate
+          cache: true
 
-      - name: Run Renovate
-        run: renovate
+      # No path argument on purpose: given an explicit file the validator treats
+      # it as a *global* config and accepts global-only options. Auto-discovery
+      # validates it as the repo config it actually is.
+      - name: Validate renovate config
+        run: renovate-config-validator --strict
+
+      # Scoped to what renovate actually needs rather than inheriting the App
+      # installation's blanket grants. workflows:write is what lets digest
+      # pinning edit .github/workflows/**.
+      - name: Create GitHub App token
+        id: app-token
+        if: github.event_name != 'pull_request'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          # Accepts a numeric App ID as well as a client ID; both become the JWT
+          # `iss` claim. The `app-id` alias is deprecated.
+          client-id: ${{ vars.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          permission-workflows: write
+          permission-checks: read
+          permission-statuses: write
+          permission-vulnerability-alerts: read
+
+      # useBaseBranchConfig resolves the config file *name* from the default
+      # branch, so the dry run cannot work until renovate.json5 exists there — a
+      # bootstrap PR fails with "Error fetching config file from base branch".
+      # Skip the dry run in that window; the validator step above still gates
+      # config syntax.
+      - name: Check for config on default branch
+        id: default-config
+        if: github.event_name == 'pull_request'
         env:
-          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          # RENOVATE_BASE_BRANCHES is github.head_ref, which for a fork PR names
+          # a branch that exists only in the fork — renovate would look for it
+          # here and fail.
+          if [ "${HEAD_REPO}" != "${REPO}" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::pull request is from a fork; skipping dry run (config validation still ran)"
+          elif gh api "repos/${REPO}/contents/renovate.json5" --jq .name > /dev/null 2>&1; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::renovate.json5 is not on the default branch yet; skipping dry run (config validation still ran)"
+          fi
+
+      # On pull requests this is a dry run against the PR branch, so config
+      # changes can be previewed before merge. requireConfig=optional keeps
+      # renovate from short-circuiting to disabled-no-config and exiting 0
+      # having validated nothing.
+      - name: Run renovate
+        if: github.event_name != 'pull_request' || steps.default-config.outputs.present == 'true'
+        env:
+          RENOVATE_TOKEN: ${{ github.event_name == 'pull_request' && github.token || steps.app-token.outputs.token }}
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           RENOVATE_ONBOARDING: 'false'
+          RENOVATE_REQUIRE_CONFIG: ${{ github.event_name == 'pull_request' && 'optional' || 'required' }}
+          RENOVATE_DRY_RUN: ${{ github.event_name == 'pull_request' && 'full' || '' }}
+          RENOVATE_BASE_BRANCHES: ${{ github.event_name == 'pull_request' && format('["{0}"]', github.head_ref) || '' }}
+          RENOVATE_USE_BASE_BRANCH_CONFIG: ${{ github.event_name == 'pull_request' && 'merge' || '' }}
           LOG_LEVEL: ${{ inputs.log_level || 'info' }}
-          RENOVATE_HOST_RULES: >-
-            [
-            {"matchHost":"ghcr.io","hostType":"docker","username":"x-access-token","password":"${{ github.token }}"}
-            ]
+        run: renovate
