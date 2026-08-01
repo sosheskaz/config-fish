@@ -2,7 +2,11 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":semanticCommitTypeAll(deps)"
+    ":semanticCommitTypeAll(deps)",
+    // Pins actions by digest and keeps the trailing version comment in semver
+    // form. Supplies pinDigests and a versioning regex tolerant of both `v7`
+    // and `v7.0.1`, so the github-actions rule below must not set `versioning`.
+    "helpers:pinGitHubActionDigestsToSemver"
   ],
   "semanticCommits": "enabled",
   "semanticCommitType": "deps",
@@ -32,8 +36,6 @@
       "matchManagers": ["github-actions"],
       "semanticCommitType": "ci",
       "semanticCommitScope": "actions",
-      "pinDigests": true,
-      "versioning": "semver",
       "automerge": true,
       "automergeType": "pr"
     },
@@ -57,10 +59,29 @@
       "enabled": false
     },
     {
+      // The mise CLI is pinned in the workflows, not in .config/mise.toml, so
+      // it arrives via customManagers rather than the mise manager.
+      "matchDepNames": ["jdx/mise"],
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "mise",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
       "description": "Majors always get a human",
       "matchUpdateTypes": ["major"],
       "addLabels": ["MAJOR UPDATE"],
       "automerge": false
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Read `# renovate:` annotations above workflow action inputs",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+version: (?<currentValue>\\S+)"
+      ]
     }
   ]
 }

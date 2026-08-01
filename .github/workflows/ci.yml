@@ -24,6 +24,13 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+    # Job-level so any step that shells out to mise/lefthook inherits them.
+    env:
+      MISE_EXEC_AUTO_INSTALL: 'false'
+      MISE_TASK_RUN_AUTO_INSTALL: 'false'
+      YAMLLINT_FORMAT: github
+      # Validated properly in renovate.yml against the real datasources.
+      LEFTHOOK_EXCLUDE: renovate-config-validator
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
@@ -37,6 +44,10 @@ jobs:
       - name: Set up mise
         uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d  # v4.2.0
         with:
+          # Pinned: an unpinned mise is what broke this repo's CI when 2026.7.12
+          # changed the npm backend. Bumped by renovate via the annotation.
+          # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
+          version: 2026.7.18
           # Deliberately omits npm:renovate (~200MB): the renovate config is
           # validated for real in renovate.yml, and the matching lefthook job is
           # excluded below.
@@ -48,12 +59,6 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers/actionlint.json"
 
       - name: Run lefthook pre-commit
-        env:
-          MISE_EXEC_AUTO_INSTALL: 'false'
-          MISE_TASK_RUN_AUTO_INSTALL: 'false'
-          YAMLLINT_FORMAT: github
-          # Validated properly in renovate.yml against the real datasources.
-          LEFTHOOK_EXCLUDE: renovate-config-validator
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="${{ github.event.pull_request.base.sha }}"
