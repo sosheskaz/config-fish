@@ -7,7 +7,7 @@ npm.shell_out = true
 [tools]
 lefthook = "2.1.10"
 yamllint = "1.38.0"
-zizmor = "1.27.0"
+zizmor = "1.28.0"
 "aqua:rhysd/actionlint" = "1.7.12"
 
 # renovate declares engines.node "^24"; a node major bump breaks it.
