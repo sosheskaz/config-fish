@@ -2,20 +2,63 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests"
+    ":semanticCommitTypeAll(deps)"
   ],
-  // Update frequency is controlled by the .github/workflows/renovate.yml cron.
-  // Keeping a `schedule` here would make workflow_dispatch runs no-op outside the window.
-  "minimumReleaseAge": "1 week",
+  "semanticCommits": "enabled",
+  "semanticCommitType": "deps",
+  // Cadence comes from the .github/workflows/renovate.yml cron. "at any time"
+  // is renovate's no-restriction default, stated explicitly: a real window here
+  // would make workflow_dispatch runs no-op outside it.
+  "schedule": ["at any time"],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 10,
+  "osvVulnerabilityAlerts": true,
+  "ignorePaths": [".worktrees/**"],
   "packageRules": [
     {
+      "description": "Let a release settle before proposing it, so yanked or quickly-patched versions never reach a PR",
+      "matchUpdateTypes": ["patch", "minor"],
+      "minimumReleaseAge": "1 week"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "2 weeks"
+    },
+    {
+      // automergeType "pr" is GitHub-native auto-merge: it still waits on
+      // required checks rather than bypassing them.
       "matchManagers": ["github-actions"],
-      "groupName": "github-actions"
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "actions",
+      "pinDigests": true,
+      "versioning": "semver",
+      "automerge": true,
+      "automergeType": "pr"
     },
     {
       "matchManagers": ["mise"],
-      "matchDatasources": ["node-version", "npm"],
-      "groupName": "nodejs"
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "mise"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      // renovate declares engines.node "^24"; a node major bump breaks the
+      // renovate workflow itself, so it never lands unattended.
+      "matchManagers": ["mise"],
+      "matchDepNames": ["node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Majors always get a human",
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["MAJOR UPDATE"],
+      "automerge": false
     }
   ]
 }
