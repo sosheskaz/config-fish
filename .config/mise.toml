@@ -1,0 +1,23 @@
+# mise 2026.7.12 switched the npm backend to install in-process via embedded
+# aube, which fails to resolve renovate's dependency tree. Route npm installs
+# back through the npm CLI until the aube resolver handles them.
+[settings]
+npm.shell_out = true
+
+[tools]
+lefthook = "2.1.10"
+yamllint = "1.38.0"
+zizmor = "1.27.0"
+"aqua:rhysd/actionlint" = "1.7.12"
+
+# renovate declares engines.node "^24"; a node major bump breaks it.
+node = "24.17.0"
+"npm:renovate" = "43.229.3"
+
+[tasks."install:hooks"]
+description = "Install git hooks via lefthook"
+run = "lefthook install"
+
+[tasks.check]
+description = "Run every pre-commit check against the whole tree"
+run = "lefthook run pre-commit --all-files"

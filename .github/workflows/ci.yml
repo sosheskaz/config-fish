@@ -1,19 +1,77 @@
 name: CI
 
 on:
+  pull_request: {}
   push:
+    branches:
+      - main
+  # Weekly run on an unchanged main: linters gain checks between releases, so a
+  # tree that passed months ago can legitimately start failing.
+  schedule:
+    - cron: '0 14 * * 1'
+  workflow_dispatch: {}
+
+concurrency:
+  # Main never cancels in flight; batch-merged runs coalesce to the tip rather
+  # than one run per commit. PR branches cancel — only the tip matters there.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  lefthook:
+  pre-commit:
+    name: Pre-commit hooks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    # Job-level so any step that shells out to mise/lefthook inherits them.
+    env:
+      MISE_EXEC_AUTO_INSTALL: 'false'
+      MISE_TASK_RUN_AUTO_INSTALL: 'false'
+      YAMLLINT_FORMAT: github
+      # Validated properly in renovate.yml against the real datasources.
+      LEFTHOOK_EXCLUDE: renovate-config-validator
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # the PR path diffs base..head
 
       - name: Install Fish shell
-        uses: fish-actions/install-fish@4bb37a71daebb76c6fb7d83771cff31b8a78c28e # v1.2.0
+        uses: fish-actions/install-fish@4bb37a71daebb76c6fb7d83771cff31b8a78c28e  # v1.2.0
 
       - name: Set up mise
-        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d  # v4.2.0
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
+          version: 2026.7.18
+          # Deliberately omits npm:renovate (~200MB): the renovate config is
+          # validated for real in renovate.yml.
+          install_args: lefthook yamllint zizmor aqua:rhysd/actionlint
+          cache: true
 
-      - name: Run lefthook checks
-        run: lefthook run pre-commit --all-files --no-tty
+      # Registered job-wide so findings from every step below annotate the diff.
+      - name: Register problem matcher
+        run: echo "::add-matcher::.github/problem-matchers/actionlint.json"
+
+      - name: Run lefthook pre-commit
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            # base...head, not base head: the two-dot form compares endpoints,
+            # so a file main deleted after the fork reads as added by the PR.
+            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base...$head")
+            if [ "${#files[@]}" -eq 0 ]; then
+              echo "no changed files; skipping"
+              exit 0
+            fi
+            args=()
+            for f in "${files[@]}"; do
+              args+=(--file "$f")
+            done
+            lefthook run pre-commit --no-tty "${args[@]}"
+          else
+            lefthook run pre-commit --no-tty --all-files
+          fi

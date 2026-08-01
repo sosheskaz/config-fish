@@ -1,6 +1,0 @@
-[tools]
-actionlint = "1.7.12"
-lefthook = "2.1.10"
-
-node = "24.17.0"
-"npm:renovate" = "43.229.3"

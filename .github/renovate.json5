@@ -1,0 +1,72 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitTypeAll(deps)",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "deps",
+  // Cadence comes from the .github/workflows/renovate.yml cron. "at any time"
+  // is renovate's no-restriction default, stated explicitly.
+  "schedule": ["at any time"],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "separateMajorMinor": true,
+  "osvVulnerabilityAlerts": true,
+  "ignorePaths": [".worktrees/**"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Read `# renovate:` annotations above workflow action inputs",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+version: (?<currentValue>\\S+)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Let a release settle before proposing it, so yanked or quickly-patched versions never reach a PR",
+      "matchUpdateTypes": ["patch", "minor"],
+      "minimumReleaseAge": "1 week"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "2 weeks"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "actions",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "matchManagers": ["mise"],
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "mise"
+    },
+    {
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      // The mise CLI is pinned in the workflows, not in .config/mise.toml, so
+      // it arrives via customManagers rather than the mise manager.
+      "matchDepNames": ["jdx/mise"],
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "mise",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Majors always get a human",
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["MAJOR UPDATE"],
+      "automerge": false
+    }
+  ]
+}

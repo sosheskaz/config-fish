@@ -1,0 +1,55 @@
+# Pre-commit hooks. Install with `mise run install:hooks`.
+# Every job is glob-scoped so only relevant changes pay its cost; CI runs the
+# same suite against the PR's changed files (.github/workflows/ci.yml).
+pre-commit:
+  parallel: true
+  jobs:
+    - name: fish-syntax
+      glob: "**/*.fish"
+      run: |
+        for file in {staged_files}; do
+          fish -n "$file" || exit 1
+        done
+
+    # POSIX bracket expression, not \s with grep -P: BSD grep (macOS
+    # /usr/bin/grep) has no -P and exits 2, which the surrounding `if` reads as
+    # "no match" — the check passed silently on macOS for every local commit.
+    - name: trailing-whitespace
+      run: |
+        for file in {staged_files}; do
+          if grep -n '[[:blank:]]$' "$file"; then
+            echo "trailing whitespace: $file"
+            exit 1
+          fi
+        done
+
+    - name: actionlint
+      glob: ".github/workflows/*.{yaml,yml}"
+      run: mise exec -- actionlint {staged_files}
+
+    - name: zizmor
+      glob: ".github/workflows/*.{yaml,yml}"
+      run: mise exec -- zizmor {staged_files}
+
+    - name: yamllint
+      glob: "**/*.{yaml,yml}"
+      run: mise exec -- yamllint -c .yamllint.yaml -f "${YAMLLINT_FORMAT:-standard}" {staged_files}
+
+    # No path argument: an explicit file makes the validator treat it as a
+    # *global* config and accept global-only options.
+    - name: renovate-config-validator
+      glob: ".github/renovate.{json,json5}"
+      run: mise exec -- renovate-config-validator --strict
+
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        commit_msg_file="{1}"
+        # Scope allows digits and dashes: renovate emits ci(github-actions).
+        pattern='^(feat|fix|refactor|test|docs|chore|build|ci|perf|deps)(\([a-z0-9-]+\))?!?: .+'
+        if ! grep -Eq "$pattern" "$commit_msg_file"; then
+          echo "invalid commit message. use conventional commits: type(scope): subject"
+          echo "types: feat fix refactor test docs chore build ci perf deps"
+          exit 1
+        fi
