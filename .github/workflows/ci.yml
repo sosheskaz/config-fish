@@ -47,8 +47,7 @@ jobs:
           # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
           version: 2026.7.18
           # Deliberately omits npm:renovate (~200MB): the renovate config is
-          # validated for real in renovate.yml, and the matching lefthook job is
-          # excluded below.
+          # validated for real in renovate.yml.
           install_args: lefthook yamllint zizmor aqua:rhysd/actionlint
           cache: true
 
