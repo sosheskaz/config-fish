@@ -35,9 +35,6 @@ pre-commit:
       glob: "**/*.{yaml,yml}"
       run: mise exec -- yamllint -c .yamllint.yaml -f "${YAMLLINT_FORMAT:-standard}" {staged_files}
 
-    # Excluded in CI (LEFTHOOK_EXCLUDE in ci.yml): renovate.yml validates the
-    # config there against the real datasources, without installing the ~200MB
-    # npm package into the lint job.
     # No path argument: an explicit file makes the validator treat it as a
     # *global* config and accept global-only options.
     - name: renovate-config-validator
