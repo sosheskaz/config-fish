@@ -17,17 +17,21 @@ function __codex_profile_names
     end | sort -u
 end
 
-# Match the contexts where Codex currently accepts --profile after a command.
-# These predicates are defined by Codex's generated Fish completion script.
+# Match the contexts where Codex currently accepts --profile. These predicates
+# are defined by Codex's generated Fish completion script.
 function __codex_profile_context
     functions -q __fish_codex_needs_command; or return 1
     functions -q __fish_codex_using_subcommand; or return 1
 
-    if __fish_codex_needs_command >/dev/null 2>/dev/null
+    # The generated parser cannot recognize an incomplete --profile value, so
+    # use the command list to retain the top-level completion context here.
+    set -l codex_subcommands exec e review login logout mcp plugin mcp-server app-server remote-control app completion update doctor sandbox debug execpolicy apply a resume archive delete unarchive fork cloud exec-server features help
+    if not __fish_seen_subcommand_from $codex_subcommands
         return 0
     end
 
-    __fish_codex_using_subcommand exec e sandbox resume archive delete unarchive fork
+    __fish_codex_using_subcommand exec e
+    and not __fish_seen_subcommand_from resume review help
 end
 
 complete -c codex \
