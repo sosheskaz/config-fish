@@ -12,7 +12,7 @@ zizmor = "1.31.1"
 
 # renovate declares engines.node "^24"; a node major bump breaks it.
 node = "24.22.1"
-"npm:renovate" = { version = "44.175.0", allow_builds = ["re2"] }
+"npm:renovate" = { version = "44.176.1", allow_builds = ["re2"] }
 
 [tasks."install:hooks"]
 description = "Install git hooks via lefthook"
