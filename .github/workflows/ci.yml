@@ -45,7 +45,7 @@ jobs:
         uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195  # v5.2.5
         with:
           # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
-          version: 2026.10.24
+          version: 2026.10.25
           # Deliberately omits npm:renovate (~200MB): the renovate config is
           # validated for real in renovate.yml.
           install_args: lefthook yamllint zizmor aqua:rhysd/actionlint
